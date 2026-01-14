@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, QrCode, LayoutGrid } from "lucide-react";
+import { Package, QrCode, LayoutGrid, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutGrid },
   { href: "/racks", label: "Racks", icon: Package },
+  { href: "/items", label: "Items", icon: Box },
   { href: "/scan", label: "Scan QR", icon: QrCode },
 ];
 

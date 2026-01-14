@@ -35,17 +35,29 @@ model User {
   auditLogs AuditLog[]
 }
 
-model Rack {
-  id        String     @id @default(uuid())
-  name      String
-  location  String?
-  qrCode    String     @unique @default(uuid())
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  items     Item[]
-  auditLogs AuditLog[]
+model Location {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  racks     Rack[]
 
   @@index([name])
+}
+
+model Rack {
+  id         String    @id @default(uuid())
+  name       String
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  qrCode     String    @unique @default(uuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  items      Item[]
+  auditLogs  AuditLog[]
+
+  @@index([name])
+  @@index([locationId])
   @@index([qrCode])
 }
 
@@ -54,6 +66,7 @@ model Item {
   name        String
   description String?
   quantity    Int        @default(1)
+  removed     Boolean    @default(false)
   rackId      String
   rack        Rack       @relation(fields: [rackId], references: [id], onDelete: Cascade)
   createdAt   DateTime   @default(now())

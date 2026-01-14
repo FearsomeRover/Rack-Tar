@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
 import { QRCodeDisplay } from "@/components/qr-code-display";
+import { PrintButton } from "@/components/print-button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +14,12 @@ interface PageProps {
 async function getRack(id: string) {
   return prisma.rack.findUnique({
     where: { id },
-    select: { id: true, name: true, location: true, qrCode: true },
+    select: {
+      id: true,
+      name: true,
+      location: true,
+      qrCode: true,
+    },
   });
 }
 
@@ -34,10 +40,7 @@ export default async function QRCodePage({ params }: PageProps) {
           </Link>
         </Button>
         <h1 className="flex-1 text-2xl font-bold">QR Code: {rack.name}</h1>
-        <Button onClick={() => window.print()}>
-          <Printer className="mr-2 h-4 w-4" />
-          Print
-        </Button>
+        <PrintButton />
       </div>
 
       <div className="flex justify-center">
@@ -47,7 +50,7 @@ export default async function QRCodePage({ params }: PageProps) {
             <div className="mt-4 text-center">
               <h2 className="text-xl font-bold">{rack.name}</h2>
               {rack.location && (
-                <p className="text-muted-foreground">{rack.location}</p>
+                <p className="text-muted-foreground">{rack.location.name}</p>
               )}
             </div>
           </CardContent>

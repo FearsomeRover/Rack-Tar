@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Trash2, Package } from "lucide-react";
+import { Pencil, Trash2, Package, PackageMinus, PackagePlus, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { deleteItem, updateItem } from "@/lib/actions/item-actions";
+import { deleteItem, updateItem, toggleItemRemoved } from "@/lib/actions/item-actions";
 import { toast } from "sonner";
-import type { Item } from "@/generated/prisma";
+import type { Item } from "@/generated/prisma/client";
 
 interface ItemListProps {
   items: Item[];
@@ -30,15 +30,28 @@ interface ItemListProps {
 export function ItemList({ items }: ItemListProps) {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showRemoved, setShowRemoved] = useState(false);
+
+  const activeItems = items.filter((item) => !item.removed);
+  const removedItems = items.filter((item) => item.removed);
 
   async function handleDelete(item: Item) {
-    if (!confirm(`Delete "${item.name}"?`)) return;
+    if (!confirm(`Permanently delete "${item.name}"?`)) return;
 
     try {
       await deleteItem(item.id);
       toast.success("Item deleted");
     } catch {
       toast.error("Failed to delete item");
+    }
+  }
+
+  async function handleToggleRemoved(item: Item) {
+    try {
+      await toggleItemRemoved(item.id);
+      toast.success(item.removed ? "Item restored" : "Item removed");
+    } catch {
+      toast.error("Failed to update item");
     }
   }
 
@@ -78,45 +91,125 @@ export function ItemList({ items }: ItemListProps) {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead className="w-24 text-right">Qty</TableHead>
-            <TableHead className="w-20"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell className="text-muted-foreground">
-                {item.description || "-"}
-              </TableCell>
-              <TableCell className="text-right">{item.quantity}</TableCell>
-              <TableCell>
-                <div className="flex justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditingItem(item)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(item)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+      {activeItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <Package className="mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">No active items</p>
+          <p className="text-sm text-muted-foreground">
+            All items have been temporarily removed
+          </p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead className="w-24 text-right">Qty</TableHead>
+              <TableHead className="w-28"></TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {activeItems.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {item.description || "-"}
+                </TableCell>
+                <TableCell className="text-right">{item.quantity}</TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleToggleRemoved(item)}
+                      title="Remove temporarily"
+                    >
+                      <PackageMinus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingItem(item)}
+                      title="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(item)}
+                      title="Delete permanently"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      {removedItems.length > 0 && (
+        <div className="mt-4 border-t pt-4">
+          <button
+            onClick={() => setShowRemoved(!showRemoved)}
+            className="flex w-full items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            {showRemoved ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            Temporarily removed ({removedItems.length})
+          </button>
+
+          {showRemoved && (
+            <Table className="mt-2">
+              <TableBody>
+                {removedItems.map((item) => (
+                  <TableRow key={item.id} className="opacity-60">
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {item.description || "-"}
+                    </TableCell>
+                    <TableCell className="w-24 text-right">{item.quantity}</TableCell>
+                    <TableCell className="w-28">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleToggleRemoved(item)}
+                          title="Restore"
+                        >
+                          <PackagePlus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingItem(item)}
+                          title="Edit"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(item)}
+                          title="Delete permanently"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      )}
 
       <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
         <DialogContent>

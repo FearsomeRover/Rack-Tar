@@ -16,11 +16,14 @@ async function getRacks(query?: string) {
       ? {
           OR: [
             { name: { contains: query, mode: "insensitive" } },
-            { location: { contains: query, mode: "insensitive" } },
+            { location: { name: { contains: query, mode: "insensitive" } } },
           ],
         }
       : undefined,
-    include: { _count: { select: { items: true } } },
+    include: {
+      location: true,
+      _count: { select: { items: { where: { removed: false } } } },
+    },
     orderBy: { name: "asc" },
   });
 }

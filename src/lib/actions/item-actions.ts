@@ -53,3 +53,16 @@ export async function moveItem(id: string, newRackId: string) {
   revalidatePath(`/rack/${newRackId}`);
   return updated;
 }
+
+export async function toggleItemRemoved(id: string) {
+  const item = await prisma.item.findUnique({ where: { id } });
+  if (!item) throw new Error("Item not found");
+
+  const updated = await prisma.item.update({
+    where: { id },
+    data: { removed: !item.removed },
+  });
+
+  revalidatePath(`/rack/${item.rackId}`);
+  return updated;
+}

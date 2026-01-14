@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LocationSelect } from "@/components/location-select";
 import { createRack } from "@/lib/actions/rack-actions";
 import { toast } from "sonner";
 
 export default function NewRackPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [locationId, setLocationId] = useState<string | undefined>();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -21,10 +23,9 @@ export default function NewRackPage() {
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const location = formData.get("location") as string;
 
     try {
-      const rack = await createRack({ name, location: location || undefined });
+      const rack = await createRack({ name, locationId });
       toast.success("Rack created successfully");
       router.push(`/rack/${rack.id}`);
     } catch {
@@ -60,12 +61,8 @@ export default function NewRackPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                placeholder="e.g., Warehouse, Room 101"
-              />
+              <Label>Location</Label>
+              <LocationSelect value={locationId} onChange={setLocationId} />
             </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={isLoading}>

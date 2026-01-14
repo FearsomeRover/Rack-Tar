@@ -8,11 +8,14 @@ import { RackCard } from "@/components/rack-card";
 async function getStats() {
   const [rackCount, itemCount, recentRacks] = await Promise.all([
     prisma.rack.count(),
-    prisma.item.count(),
+    prisma.item.count({ where: { removed: false } }),
     prisma.rack.findMany({
       take: 6,
       orderBy: { updatedAt: "desc" },
-      include: { _count: { select: { items: true } } },
+      include: {
+        location: true,
+        _count: { select: { items: { where: { removed: false } } } },
+      },
     }),
   ]);
   return { rackCount, itemCount, recentRacks };

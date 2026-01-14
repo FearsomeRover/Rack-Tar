@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { MapPin, Box } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Rack } from "@/generated/prisma";
+import type { Rack, Location } from "@/generated/prisma/client";
 
-type RackWithCount = Rack & {
+type RackWithLocationAndCount = Rack & {
+  location: Location | null;
   _count: { items: number };
 };
 
 interface RackCardProps {
-  rack: RackWithCount;
+  rack: RackWithLocationAndCount;
 }
 
 export function RackCard({ rack }: RackCardProps) {
@@ -22,7 +23,7 @@ export function RackCard({ rack }: RackCardProps) {
           {rack.location && (
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              <span>{rack.location}</span>
+              <span>{rack.location.name}</span>
             </div>
           )}
           <div className="flex items-center gap-2">
