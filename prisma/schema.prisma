@@ -1,0 +1,83 @@
+// Prisma schema for Racktar - Storage Rack Tracking System
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+enum AuditAction {
+  CREATE_RACK
+  UPDATE_RACK
+  DELETE_RACK
+  CREATE_ITEM
+  UPDATE_ITEM
+  DELETE_ITEM
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  role      UserRole   @default(EDITOR)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  auditLogs AuditLog[]
+}
+
+model Rack {
+  id        String     @id @default(uuid())
+  name      String
+  location  String?
+  qrCode    String     @unique @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     Item[]
+  auditLogs AuditLog[]
+
+  @@index([name])
+  @@index([qrCode])
+}
+
+model Item {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  quantity    Int        @default(1)
+  rackId      String
+  rack        Rack       @relation(fields: [rackId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  auditLogs   AuditLog[]
+
+  @@index([rackId])
+  @@index([name])
+}
+
+model AuditLog {
+  id        String      @id @default(uuid())
+  action    AuditAction
+  details   Json?
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rackId    String?
+  rack      Rack?       @relation(fields: [rackId], references: [id], onDelete: SetNull)
+  itemId    String?
+  item      Item?       @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@index([rackId])
+  @@index([itemId])
+  @@index([createdAt])
+}
