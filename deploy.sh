@@ -16,7 +16,8 @@ echo "Pulling latest changes..."
 git pull origin main
 
 echo "Stopping existing containers..."
-docker compose down
+docker compose down --remove-orphans || true
+docker rm -f racktar-app-1 racktar-db-1 2>/dev/null || true
 
 echo "Building new image..."
 docker compose build --no-cache
