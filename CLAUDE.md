@@ -110,11 +110,19 @@ Register your app at the [AuthSCH Developer Console](https://auth.sch.bme.hu).
 - `openid` - OIDC standard
 - `profile` - name, family_name, given_name
 - `email` - email address
+- `pek.sch.bme.hu:profile` - group memberships and leadership positions
 
 **Key claims:**
 - `sub` - Unique user ID (guaranteed stable, used as `authschId` in database)
 - `name` - Full name
 - `email` - Email address
+- `pek.sch.bme.hu:activeMemberships/v1` - Active group memberships
+- `pek.sch.bme.hu:executiveAt/v1` - Leadership positions
+
+**Automatic role assignment (on first login):**
+- Leader of group 57 → ADMIN
+- Member of group 57 → EDITOR
+- Others → VIEWER
 
 ## Deployment
 
