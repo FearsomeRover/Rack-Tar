@@ -96,6 +96,26 @@ AUTH_TRUST_HOST=true  # Required when behind reverse proxy
 
 All mutations are logged to AuditLog with user ID, action, and details.
 
+### AuthSCH API Reference
+
+Register your app at the [AuthSCH Developer Console](https://auth.sch.bme.hu).
+
+**OIDC Endpoints:**
+- Issuer / Discovery: `https://auth.sch.bme.hu`
+- Authorize: `https://auth.sch.bme.hu/site/login`
+- Token: `https://auth.sch.bme.hu/oauth2/token`
+- Userinfo: `https://auth.sch.bme.hu/oidc/userinfo`
+
+**Scopes used:**
+- `openid` - OIDC standard
+- `profile` - name, family_name, given_name
+- `email` - email address
+
+**Key claims:**
+- `sub` - Unique user ID (guaranteed stable, used as `authschId` in database)
+- `name` - Full name
+- `email` - Email address
+
 ## Deployment
 
 ### Docker (Self-hosted)
