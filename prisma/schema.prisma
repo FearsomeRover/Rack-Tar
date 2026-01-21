@@ -27,12 +27,15 @@ enum AuditAction {
 
 model User {
   id        String     @id @default(uuid())
-  email     String     @unique
+  authschId String     @unique // AuthSCH 'sub' claim (guaranteed stable)
+  email     String?
   name      String?
-  role      UserRole   @default(EDITOR)
+  role      UserRole   @default(VIEWER)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   auditLogs AuditLog[]
+
+  @@index([authschId])
 }
 
 model Location {

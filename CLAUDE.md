@@ -23,6 +23,7 @@ npm run db:studio    # Open Prisma Studio GUI
 
 - **Framework**: Next.js 16 with App Router
 - **Database**: PostgreSQL with Prisma ORM
+- **Auth**: NextAuth.js v5 with AuthSCH (BME OAuth)
 - **UI**: Tailwind CSS v4 + shadcn/ui components
 - **QR**: html5-qrcode (scanning), qrcode (generation)
 
@@ -33,7 +34,8 @@ npm run db:studio    # Open Prisma Studio GUI
 - **Location** - Named locations (e.g., "Warehouse A")
 - **Rack** - Storage racks with optional location reference
 - **Item** - Items stored in racks, supports soft-delete via `removed` flag
-- **User/AuditLog** - Prepared for auth (not yet implemented)
+- **User** - Authenticated users with roles (VIEWER, EDITOR, ADMIN)
+- **AuditLog** - Tracks all mutations with user, action, and details
 
 ### Key Directories
 
@@ -44,12 +46,16 @@ src/
 │   ├── racks/             # Rack list and creation
 │   ├── rack/[id]/         # Single rack view, QR code page
 │   ├── items/             # All items search page
-│   └── scan/              # QR scanner page
+│   ├── scan/              # QR scanner page
+│   ├── login/             # Login page
+│   └── api/auth/          # NextAuth API routes
 ├── components/
 │   ├── ui/                # shadcn/ui primitives
 │   └── *.tsx              # Feature components
 └── lib/
-    ├── actions/           # Server actions for CRUD
+    ├── actions/           # Server actions for CRUD (with permission checks)
+    ├── auth.ts            # NextAuth configuration
+    ├── permissions.ts     # Role checking utilities
     └── db.ts              # Prisma client singleton
 ```
 
@@ -66,3 +72,24 @@ Items have a `removed` boolean for soft-delete. When `removed: true`:
 - Item is hidden from main lists and counts
 - Appears in collapsible "Temporarily removed" section
 - Can be restored without re-entering data
+
+### Authentication & Permissions
+
+Uses AuthSCH (BME SSO) via NextAuth.js v5. Key files:
+- `src/lib/auth.ts` - NextAuth configuration
+- `src/lib/permissions.ts` - Role checking utilities
+- `src/app/api/auth/[...nextauth]/route.ts` - Auth API routes
+
+**Roles:**
+- **VIEWER** (default): Read-only access, same as unauthenticated users
+- **EDITOR**: Can create/edit/delete racks, items, and locations
+- **ADMIN**: Full access including location deletion
+
+**Environment variables required:**
+```
+AUTHSCH_CLIENT_ID=<from AuthSCH developer console>
+AUTHSCH_CLIENT_SECRET=<secret>
+AUTH_SECRET=<random 32+ char string>
+```
+
+All mutations are logged to AuditLog with user ID, action, and details.

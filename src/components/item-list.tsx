@@ -25,9 +25,10 @@ import type { Item } from "@/generated/prisma/client";
 
 interface ItemListProps {
   items: Item[];
+  canEdit?: boolean;
 }
 
-export function ItemList({ items }: ItemListProps) {
+export function ItemList({ items, canEdit = false }: ItemListProps) {
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showRemoved, setShowRemoved] = useState(false);
@@ -106,7 +107,7 @@ export function ItemList({ items }: ItemListProps) {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="w-24 text-right">Qty</TableHead>
-              <TableHead className="w-28"></TableHead>
+              {canEdit && <TableHead className="w-28"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -117,34 +118,36 @@ export function ItemList({ items }: ItemListProps) {
                   {item.description || "-"}
                 </TableCell>
                 <TableCell className="text-right">{item.quantity}</TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleToggleRemoved(item)}
-                      title="Remove temporarily"
-                    >
-                      <PackageMinus className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingItem(item)}
-                      title="Edit"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(item)}
-                      title="Delete permanently"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+                {canEdit && (
+                  <TableCell>
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleToggleRemoved(item)}
+                        title="Remove temporarily"
+                      >
+                        <PackageMinus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditingItem(item)}
+                        title="Edit"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(item)}
+                        title="Delete permanently"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -175,34 +178,36 @@ export function ItemList({ items }: ItemListProps) {
                       {item.description || "-"}
                     </TableCell>
                     <TableCell className="w-24 text-right">{item.quantity}</TableCell>
-                    <TableCell className="w-28">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleToggleRemoved(item)}
-                          title="Restore"
-                        >
-                          <PackagePlus className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingItem(item)}
-                          title="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(item)}
-                          title="Delete permanently"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {canEdit && (
+                      <TableCell className="w-28">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleToggleRemoved(item)}
+                            title="Restore"
+                          >
+                            <PackagePlus className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingItem(item)}
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(item)}
+                            title="Delete permanently"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

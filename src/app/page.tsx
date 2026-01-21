@@ -3,6 +3,7 @@ import { Package, Box, QrCode, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
+import { canEdit } from "@/lib/permissions";
 import { RackCard } from "@/components/rack-card";
 
 async function getStats() {
@@ -22,7 +23,10 @@ async function getStats() {
 }
 
 export default async function Dashboard() {
-  const { rackCount, itemCount, recentRacks } = await getStats();
+  const [{ rackCount, itemCount, recentRacks }, userCanEdit] = await Promise.all([
+    getStats(),
+    canEdit(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -35,12 +39,14 @@ export default async function Dashboard() {
               Scan QR
             </Link>
           </Button>
-          <Button asChild>
-            <Link href="/racks/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Rack
-            </Link>
-          </Button>
+          {userCanEdit && (
+            <Button asChild>
+              <Link href="/racks/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Rack
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -77,9 +83,11 @@ export default async function Dashboard() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="mb-4 h-12 w-12 text-muted-foreground" />
               <p className="mb-4 text-muted-foreground">No racks yet</p>
-              <Button asChild>
-                <Link href="/racks/new">Create your first rack</Link>
-              </Button>
+              {userCanEdit && (
+                <Button asChild>
+                  <Link href="/racks/new">Create your first rack</Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (

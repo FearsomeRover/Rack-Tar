@@ -3,6 +3,7 @@ import { Plus, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
+import { canEdit } from "@/lib/permissions";
 import { RackCard } from "@/components/rack-card";
 import { SearchInput } from "@/components/search-input";
 
@@ -30,18 +31,20 @@ async function getRacks(query?: string) {
 
 export default async function RacksPage({ searchParams }: PageProps) {
   const { q } = await searchParams;
-  const racks = await getRacks(q);
+  const [racks, userCanEdit] = await Promise.all([getRacks(q), canEdit()]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Racks</h1>
-        <Button asChild>
-          <Link href="/racks/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Rack
-          </Link>
-        </Button>
+        {userCanEdit && (
+          <Button asChild>
+            <Link href="/racks/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Rack
+            </Link>
+          </Button>
+        )}
       </div>
 
       <SearchInput placeholder="Search racks..." />
@@ -53,7 +56,7 @@ export default async function RacksPage({ searchParams }: PageProps) {
             <p className="mb-4 text-muted-foreground">
               {q ? `No racks found for "${q}"` : "No racks yet"}
             </p>
-            {!q && (
+            {!q && userCanEdit && (
               <Button asChild>
                 <Link href="/racks/new">Create your first rack</Link>
               </Button>

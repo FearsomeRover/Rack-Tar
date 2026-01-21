@@ -4,6 +4,7 @@ import { ArrowLeft, QrCode, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/db";
+import { canEdit } from "@/lib/permissions";
 import { ItemList } from "@/components/item-list";
 import { AddItemForm } from "@/components/add-item-form";
 import { DeleteRackButton } from "@/components/delete-rack-button";
@@ -25,7 +26,7 @@ async function getRack(id: string) {
 
 export default async function RackPage({ params }: PageProps) {
   const { id } = await params;
-  const rack = await getRack(id);
+  const [rack, userCanEdit] = await Promise.all([getRack(id), canEdit()]);
 
   if (!rack) {
     notFound();
@@ -49,43 +50,49 @@ export default async function RackPage({ params }: PageProps) {
           )}
         </div>
         <div className="flex gap-2">
-          <EditRackButton
-            rackId={rack.id}
-            rackName={rack.name}
-            rackLocationId={rack.locationId}
-          />
+          {userCanEdit && (
+            <EditRackButton
+              rackId={rack.id}
+              rackName={rack.name}
+              rackLocationId={rack.locationId}
+            />
+          )}
           <Button asChild variant="outline" size="sm">
             <Link href={`/rack/${rack.id}/qr`}>
               <QrCode className="mr-2 h-4 w-4" />
               QR Code
             </Link>
           </Button>
-          <DeleteRackButton rackId={rack.id} rackName={rack.name} />
+          {userCanEdit && (
+            <DeleteRackButton rackId={rack.id} rackName={rack.name} />
+          )}
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className={userCanEdit ? "lg:col-span-2" : "lg:col-span-3"}>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Items ({rack.items.filter(i => !i.removed).length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <ItemList items={rack.items} />
+              <ItemList items={rack.items} canEdit={userCanEdit} />
             </CardContent>
           </Card>
         </div>
 
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Item</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AddItemForm rackId={rack.id} />
-            </CardContent>
-          </Card>
-        </div>
+        {userCanEdit && (
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Item</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AddItemForm rackId={rack.id} />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,19 +1,12 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Package, QrCode, LayoutGrid, Box } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Package, Settings } from "lucide-react";
+import { HeaderNav } from "./header-nav";
+import { AuthButton } from "./auth-button";
+import { isAdmin } from "@/lib/permissions";
+import { Button } from "./ui/button";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutGrid },
-  { href: "/racks", label: "Racks", icon: Package },
-  { href: "/items", label: "Items", icon: Box },
-  { href: "/scan", label: "Scan QR", icon: QrCode },
-];
-
-export function Header() {
-  const pathname = usePathname();
+export async function Header() {
+  const userIsAdmin = await isAdmin();
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white dark:bg-zinc-900">
@@ -22,30 +15,20 @@ export function Header() {
           <Package className="h-6 w-6" />
           <span>Racktar</span>
         </Link>
-        <nav className="flex items-center gap-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
-                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{item.label}</span>
+        <div className="flex items-center gap-4">
+          <HeaderNav />
+          {userIsAdmin && (
+            <Button asChild variant="ghost" size="sm" className="hidden sm:flex">
+              <Link href="/admin/users">
+                <Settings className="mr-2 h-4 w-4" />
+                Admin
               </Link>
-            );
-          })}
-        </nav>
+            </Button>
+          )}
+          <div className="hidden border-l pl-4 md:block">
+            <AuthButton />
+          </div>
+        </div>
       </div>
     </header>
   );
