@@ -48,6 +48,7 @@ src/
 │   ├── items/             # All items search page
 │   ├── scan/              # QR scanner page
 │   ├── login/             # Login page
+│   ├── admin/             # Admin panel (users, audit logs)
 │   └── api/auth/          # NextAuth API routes
 ├── components/
 │   ├── ui/                # shadcn/ui primitives
@@ -83,13 +84,44 @@ Uses AuthSCH (BME SSO) via NextAuth.js v5. Key files:
 **Roles:**
 - **VIEWER** (default): Read-only access, same as unauthenticated users
 - **EDITOR**: Can create/edit/delete racks, items, and locations
-- **ADMIN**: Full access including location deletion
+- **ADMIN**: Full access including user management and audit logs
 
 **Environment variables required:**
 ```
 AUTHSCH_CLIENT_ID=<from AuthSCH developer console>
 AUTHSCH_CLIENT_SECRET=<secret>
 AUTH_SECRET=<random 32+ char string>
+AUTH_TRUST_HOST=true  # Required when behind reverse proxy
 ```
 
 All mutations are logged to AuditLog with user ID, action, and details.
+
+## Deployment
+
+### Docker (Self-hosted)
+
+The project includes Docker support for self-hosting:
+
+- `Dockerfile` - Multi-stage build for minimal production image
+- `docker-compose.yml` - Orchestrates app + PostgreSQL
+- `docker-entrypoint.sh` - Runs migrations on container start
+- `deploy.sh` - Automated deployment script
+
+**Quick start:**
+```bash
+cp .env.production.template .env
+# Edit .env with your values
+./deploy.sh
+```
+
+**Useful commands:**
+```bash
+docker compose logs -f app     # View app logs
+docker compose ps              # Check container status
+docker compose down            # Stop all containers
+docker compose exec db psql -U racktar -d racktar  # Database shell
+```
+
+### Vercel
+
+Can be deployed to Vercel with an external PostgreSQL database. Set environment variables in Vercel dashboard.
