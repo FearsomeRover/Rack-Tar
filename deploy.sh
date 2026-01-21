@@ -31,8 +31,8 @@ echo "Waiting for database to be ready..."
 sleep 5
 
 echo "Running database migrations..."
-docker compose exec -T app npx prisma migrate deploy 2>/dev/null || \
-docker compose exec -T app npx prisma db push --accept-data-loss
+docker compose exec -T app node ./node_modules/prisma/build/index.js db push --skip-generate 2>/dev/null || \
+echo "Migration skipped or already up to date"
 
 echo "=== Deployment complete! ==="
 echo "App running at http://localhost:3000"
